@@ -1,0 +1,4 @@
+settings:
+  block: GOLD_BLOCK
+  boost: 3 # current speed multiplied by this number
+  cooldown-time: 5 # in seconds

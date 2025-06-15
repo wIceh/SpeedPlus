@@ -1,0 +1,6 @@
+name: SpeedPlus
+version: '1.0.0'
+main: dev.wiceh.speedPlus.server.SpeedPlusLoader
+api-version: '1.21'
+authors: [ wIceh ]
+depend: [VehiclesPlus]
