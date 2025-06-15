@@ -7,6 +7,7 @@ import nl.sbdeveloper.vehiclesplus.api.events.impl.KeyPressEvent;
 import nl.sbdeveloper.vehiclesplus.api.vehicles.statics.VehicleStatics;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,7 +19,6 @@ import java.util.UUID;
 
 public class VehicleListener implements Listener {
     private final ConfigManager configManager;
-
     private static final Map<UUID, Long> cooldowns = new HashMap<>();
 
     public VehicleListener(SpeedPlus plugin) {
@@ -28,6 +28,7 @@ public class VehicleListener implements Listener {
     @EventHandler
     public void onKeyPress(KeyPressEvent event) {
         Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
 
         if (!(player.getVehicle() instanceof ArmorStand stand)) return;
 
@@ -36,22 +37,20 @@ public class VehicleListener implements Listener {
             if (holder == null || !holder.isOnGround()) return;
 
             Location location = holder.getLocation();
-            Block under = location.getBlock().getRelative(0, -1, 0);
+            Block under = location.getBlock().getRelative(BlockFace.DOWN);
 
             configManager.getMaterial().ifPresent(material -> {
-                if (under.getType() == material) {
-                    if (cooldowns.containsKey(player.getUniqueId())) return;
+                if (under.getType() != material) return;
 
-                    VehicleStatics stats = vehicle.getStatics();
-                    stats.setCurrentSpeed(stats.getCurrentSpeed() * configManager.getBoost());
+                long now = System.currentTimeMillis();
+                long cooldownTime = configManager.getCooldownTime() * 1000L;
+                if (cooldowns.containsKey(uuid) && now - cooldowns.get(uuid) < cooldownTime) return;
 
-                    cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
-                }
+                VehicleStatics stats = vehicle.getStatics();
+                stats.setCurrentSpeed(stats.getCurrentSpeed() * configManager.getBoost());
+
+                cooldowns.put(uuid, now);
             });
         });
-    }
-
-    public static Map<UUID, Long> getCooldowns() {
-        return cooldowns;
     }
 }
